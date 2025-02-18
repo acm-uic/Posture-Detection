@@ -11,6 +11,9 @@ pose = mp_pose.Pose(
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)  # 0 for default webcam
+if not cap.isOpened():
+    print("Failed to open camera")
+    exit()
 
 def calculate_angle(a, b, c):
     """
@@ -64,14 +67,23 @@ while cap.isOpened():
     
     # Process the image and detect pose
     results = pose.process(image)
+
+    # Black screen to put wireframe on
+    wireImage = np.zeros_like(frame)
     
     # Convert back to BGR for OpenCV
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
     if results.pose_landmarks:
-        # Draw pose landmarks
+        # Draw pose landmarks on camera
         mp_drawing.draw_landmarks(
             image, 
+            results.pose_landmarks,
+            mp_pose.POSE_CONNECTIONS)
+
+        # Draw pose landmarks on black screen
+        mp_drawing.draw_landmarks(
+            wireImage, 
             results.pose_landmarks,
             mp_pose.POSE_CONNECTIONS)
         
@@ -103,6 +115,7 @@ while cap.isOpened():
     
     # Display the image
     cv2.imshow('Side Profile Pose Detection', image)
+    cv2.imshow('WireFrame', wireImage)
     
     # Break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
