@@ -35,21 +35,14 @@ def calculate_angle(a, b, c):
 def is_side_profile(landmarks):
     left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
     right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
-    left_hip = landmarks[mp_pose.PoseLandmark.LEFT_HIP.value]
-    right_hip = landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value]
     
-
-    if left_shoulder.visibility < 0.3 and left_hip.visibility < 0.3:
-        return True
-    elif right_shoulder.visibility < 0.3 and right_hip.visibility < 0.3:
-        return True
-
     shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
-    hip_difference = abs(left_hip.x - right_hip.x)
 
-    if shoulder_difference < 0.05 and hip_difference < 0.05:
+    if shoulder_difference < 0.05:
         return True
     return False
+
+   
 
 
 
@@ -98,30 +91,37 @@ while cap.isOpened():
         
         # Analyze posture
         landmarks = results.pose_landmarks.landmark
-        neck_angle, back_angle = analyze_side_posture(landmarks)
-        
-        # Display angles
-        cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.putText(image, f'Back angle: {back_angle:.1f}', (10, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        
-        # Basic posture feedback
-        if 80 <= neck_angle <= 100:
-            neck_status = "Good neck alignment"
-        else:
-            neck_status = "Adjust neck position"
+
+        if is_side_profile(landmarks):
+            side_profile_status = "Side profile: Detected"
+            neck_angle, back_angle = analyze_side_posture(landmarks)
             
-        if 160 <= back_angle <= 180:
-            back_status = "Good back alignment"
-        else:
-            back_status = "Adjust back position"
+            # Display angles
+            cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            cv2.putText(image, f'Back angle: {back_angle:.1f}', (10, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             
-        cv2.putText(image, neck_status, (10, 90),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(image, back_status, (10, 120),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    
+            # Basic posture feedback
+            if 80 <= neck_angle <= 100:
+                neck_status = "Good neck alignment"
+            else:
+                neck_status = "Adjust neck position"
+                
+            if 160 <= back_angle <= 180:
+                back_status = "Good back alignment"
+            else:
+                back_status = "Adjust back position"
+                
+            cv2.putText(image, neck_status, (10, 90),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(image, back_status, (10, 120),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            
+        else:
+            side_profile_status = "Side profile: Not detected"
+        cv2.putText(image, side_profile_status, (10, 150),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     # Display the image
     cv2.imshow('Side Profile Pose Detection', image)
     
