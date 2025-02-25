@@ -32,6 +32,27 @@ def calculate_angle(a, b, c):
         angle = 360-angle
     return angle
 
+def is_side_profile(landmarks):
+    left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+    right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+    left_hip = landmarks[mp_pose.PoseLandmark.LEFT_HIP.value]
+    right_hip = landmarks[mp_pose.PoseLandmark.RIGHT_HIP.value]
+    
+
+    if left_shoulder.visibility < 0.3 and left_hip.visibility < 0.3:
+        return True
+    elif right_shoulder.visibility < 0.3 and right_hip.visibility < 0.3:
+        return True
+
+    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+    hip_difference = abs(left_hip.x - right_hip.x)
+
+    if shoulder_difference < 0.05 and hip_difference < 0.05:
+        return True
+    return False
+
+
+
 def analyze_side_posture(landmarks):
     """
     Analyze posture from side view
