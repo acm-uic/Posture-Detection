@@ -11,6 +11,9 @@ pose = mp_pose.Pose(
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)  # 0 for default webcam
+if not cap.isOpened():
+    print("Failed to open camera")
+    exit()
 
 def calculate_angle(a, b, c):
     """
@@ -31,6 +34,20 @@ def calculate_angle(a, b, c):
     if angle > 180.0:
         angle = 360-angle
     return angle
+
+def is_side_profile(landmarks):
+    left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+    right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+    
+    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+
+    if shoulder_difference < 0.05:
+        return True
+    return False
+
+   
+
+
 
 def analyze_side_posture(landmarks):
     """
@@ -64,45 +81,62 @@ while cap.isOpened():
     
     # Process the image and detect pose
     results = pose.process(image)
+
+    # Black screen to put wireframe on
+    wireImage = np.zeros_like(frame)
     
     # Convert back to BGR for OpenCV
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
     if results.pose_landmarks:
-        # Draw pose landmarks
+        # Draw pose landmarks on camera
         mp_drawing.draw_landmarks(
             image, 
+            results.pose_landmarks,
+            mp_pose.POSE_CONNECTIONS)
+
+        # Draw pose landmarks on black screen
+        mp_drawing.draw_landmarks(
+            wireImage, 
             results.pose_landmarks,
             mp_pose.POSE_CONNECTIONS)
         
         # Analyze posture
         landmarks = results.pose_landmarks.landmark
-        neck_angle, back_angle = analyze_side_posture(landmarks)
-        
-        # Display angles
-        cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.putText(image, f'Back angle: {back_angle:.1f}', (10, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        
-        # Basic posture feedback
-        if 80 <= neck_angle <= 100:
-            neck_status = "Good neck alignment"
-        else:
-            neck_status = "Adjust neck position"
+
+        if is_side_profile(landmarks):
+            side_profile_status = "Side profile: Detected"
+            neck_angle, back_angle = analyze_side_posture(landmarks)
             
-        if 160 <= back_angle <= 180:
-            back_status = "Good back alignment"
-        else:
-            back_status = "Adjust back position"
+            # Display angles
+            cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            cv2.putText(image, f'Back angle: {back_angle:.1f}', (10, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             
-        cv2.putText(image, neck_status, (10, 90),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(image, back_status, (10, 120),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    
+            # Basic posture feedback
+            if 80 <= neck_angle <= 100:
+                neck_status = "Good neck alignment"
+            else:
+                neck_status = "Adjust neck position"
+                
+            if 160 <= back_angle <= 180:
+                back_status = "Good back alignment"
+            else:
+                back_status = "Adjust back position"
+                
+            cv2.putText(image, neck_status, (10, 90),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(image, back_status, (10, 120),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            
+        else:
+            side_profile_status = "Side profile: Not detected"
+        cv2.putText(image, side_profile_status, (10, 150),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     # Display the image
     cv2.imshow('Side Profile Pose Detection', image)
+    cv2.imshow('WireFrame', wireImage)
     
     # Break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
