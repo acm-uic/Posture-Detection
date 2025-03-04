@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import time
 
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
@@ -55,6 +56,15 @@ def analyze_side_posture(landmarks):
     back_angle = calculate_angle(shoulder, hip, knee)
     
     return neck_angle, back_angle
+
+# Checks if the time that has passed since the program started is an iterval of 60 seconds, start_time = time.time() is needed at
+# the start of the program for this to work
+def refresh(start_time):
+    cur_time = time.time()
+    if((start_time - cur_time)%60 == 0):
+        return True
+    else:
+        return False
 
 while cap.isOpened():
     ret, frame = cap.read()
