@@ -2,6 +2,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+from drawing import draw_landmarks
+
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
@@ -45,10 +47,6 @@ def is_side_profile(landmarks):
         return True
     return False
 
-   
-
-
-
 def analyze_side_posture(landmarks):
     """
     Analyze posture from side view
@@ -88,18 +86,21 @@ while cap.isOpened():
     # Convert back to BGR for OpenCV
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
+    #Filtered connections
+    connections = frozenset([(9, 10), (11, 12),(11, 23), (12, 24), (23, 24),])
+    
     if results.pose_landmarks:
         # Draw pose landmarks on camera
-        mp_drawing.draw_landmarks(
+        draw_landmarks(
             image, 
             results.pose_landmarks,
-            mp_pose.POSE_CONNECTIONS)
+            connections)
 
         # Draw pose landmarks on black screen
-        mp_drawing.draw_landmarks(
+        draw_landmarks(
             wireImage, 
             results.pose_landmarks,
-            mp_pose.POSE_CONNECTIONS)
+            connections)
         
         # Analyze posture
         landmarks = results.pose_landmarks.landmark
