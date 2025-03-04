@@ -2,6 +2,9 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
+from datetime import datetime
+
+
 
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
@@ -54,8 +57,10 @@ def analyze_side_posture(landmarks):
     
     return neck_angle, back_angle
     
-start_time = time.time()
-# print(time.time())
+
+#calutating start time
+starttime = time.time()
+
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -83,13 +88,16 @@ while cap.isOpened():
         landmarks = results.pose_landmarks.landmark
         neck_angle, back_angle = analyze_side_posture(landmarks)
         
+        #finding current time
+        currenttime = time.time()
+        durationtime = currenttime - starttime
 
         # Display angles
         cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         cv2.putText(image, f'Back angle: {back_angle:.1f}', (10, 60),
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        cv2.putText(image, f"Start time: {start_time}", (10, 90),
+        cv2.putText(image, f"Duration: {durationtime:.2f} secs", (10, 90),
             cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         
         # Basic posture feedback
