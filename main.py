@@ -2,7 +2,6 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import time
-from datetime import datetime
 
 
 
@@ -77,6 +76,10 @@ while cap.isOpened():
     # Convert back to BGR for OpenCV
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
+    #finding current time
+    currenttime = time.time()
+    durationtime = currenttime - starttime  
+
     if results.pose_landmarks:
         # Draw pose landmarks
         mp_drawing.draw_landmarks(
@@ -87,10 +90,6 @@ while cap.isOpened():
         # Analyze posture
         landmarks = results.pose_landmarks.landmark
         neck_angle, back_angle = analyze_side_posture(landmarks)
-        
-        #finding current time
-        currenttime = time.time()
-        durationtime = currenttime - starttime
 
         # Display angles
         cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
