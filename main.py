@@ -1,7 +1,6 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from mediapipe.framework.formats import landmark_pb2
 
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
@@ -54,41 +53,6 @@ def analyze_side_posture(landmarks):
     
     return neck_angle, back_angle
 
-def drawConnections(poses):
-    # landmark_connections = frozenset({(9,10), (11,12), (11,23), (12,24), (23,24)})
-    # Draw connections with adjacent landmark numbers
-    for i in range(0, len(poses)-1, 2):
-            start_idx = [
-                poses[i].x,
-                poses[i].y
-            ]
-            end_idx = [
-                poses[i+1].x,
-                poses[i+1].y
-            ]
-            image_height, image_width = image.shape[:2]
-            
-            cv2.line(image,
-                     tuple(np.multiply(start_idx[:2], [
-                         image_width, image_height]).astype(int)),
-                     tuple(np.multiply(end_idx[:2], [
-                         image_width, image_height]).astype(int)),
-                     (255,255,255), 1)
-        
-    # Manually draw connections for landmark 11 to 23 and 12 to 24    
-    cv2.line(image,
-                    tuple(np.multiply([poses[3].x, poses[3].y][:2], [
-                        image_width, image_height]).astype(int)),
-                    tuple(np.multiply([poses[5].x, poses[5].y][:2], [
-                        image_width, image_height]).astype(int)),
-                    (255,255,255), 1)
-    cv2.line(image,
-                    tuple(np.multiply([poses[2].x, poses[2].y][:2], [
-                        image_width, image_height]).astype(int)),
-                    tuple(np.multiply([poses[4].x, poses[4].y][:2], [
-                        image_width, image_height]).astype(int)),
-                    (255,255,255), 1)
-
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -104,21 +68,12 @@ while cap.isOpened():
     # Convert back to BGR for OpenCV
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
-    # Landmark to use
-    landmark_points = [9, 10, 11, 12, 23, 24]
-    
     if results.pose_landmarks:
-        landmark_subset = landmark_pb2.NormalizedLandmarkList(
-            landmark = [results.pose_landmarks.landmark[i] for i in landmark_points]
-        )
         # Draw pose landmarks
         mp_drawing.draw_landmarks(
             image, 
-            landmark_subset,
-            )
-        
-        # Draw landmark connections
-        drawConnections(landmark_subset.landmark)
+            results.pose_landmarks,
+            mp_pose.POSE_CONNECTIONS)
         
         # Analyze posture
         landmarks = results.pose_landmarks.landmark
