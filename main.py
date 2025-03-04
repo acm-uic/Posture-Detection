@@ -47,6 +47,26 @@ def is_side_profile(landmarks):
         return True
     return False
 
+
+def degreeFromLeftShoulder(landmark):
+    left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+    right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+    nose = landmarks[mp_pose.PoseLandmark.NOSE.value]
+
+
+    shoulder_midpointX = (right_shoulder.x + left_shoulder.x) / 2
+    shoulder_midpointY = (right_shoulder.y + left_shoulder.y) / 2
+
+
+    LeftshoulderPoint = [left_shoulder.x, left_shoulder.y]
+    shoulderMidPoint = [shoulder_midpointX, shoulder_midpointY]
+    nosePoint = [nose.x, nose.y]
+   
+    print(calculate_angle(LeftshoulderPoint, shoulderMidPoint, nosePoint))
+   
+
+
+
 def analyze_side_posture(landmarks):
     """
     Analyze posture from side view
