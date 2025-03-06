@@ -35,10 +35,13 @@ def calculate_angle(a, b, c):
 def is_side_profile(landmarks):
     left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
     right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
-    
-    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+    left_ear = landmarks[mp_pose.PoseLandmark.LEFT_EAR.value]
+    right_ear = landmarks[mp_pose.PoseLandmark.RIGHT_EAR.value]
 
-    if shoulder_difference < 0.05:
+    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+    ear_difference = abs(left_ear.x - right_ear.x)
+
+    if shoulder_difference < 0.05 and ear_difference < 0.05:
         return True
     return False
 
