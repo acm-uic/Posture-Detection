@@ -2,6 +2,8 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
+from drawing import draw_landmarks
+
 # Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 mp_drawing = mp.solutions.drawing_utils
@@ -11,6 +13,9 @@ pose = mp_pose.Pose(
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)  # 0 for default webcam
+if not cap.isOpened():
+    print("Failed to open camera")
+    exit()
 
 def calculate_angle(a, b, c):
     """
@@ -50,10 +55,27 @@ def is_front_profile(landmarks):
     right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
     
     shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
-
     if shoulder_difference > 0.05:
         return True
     return False
+
+def degreeFromLeftShoulder(landmark):
+    left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+    right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+    nose = landmarks[mp_pose.PoseLandmark.NOSE.value]
+
+
+    shoulder_midpointX = (right_shoulder.x + left_shoulder.x) / 2
+    shoulder_midpointY = (right_shoulder.y + left_shoulder.y) / 2
+
+
+    LeftshoulderPoint = [left_shoulder.x, left_shoulder.y]
+    shoulderMidPoint = [shoulder_midpointX, shoulder_midpointY]
+    nosePoint = [nose.x, nose.y]
+   
+    print(calculate_angle(LeftshoulderPoint, shoulderMidPoint, nosePoint))
+   
+    
    
 def analyze_side_posture(landmarks):
     """
@@ -87,16 +109,28 @@ while cap.isOpened():
     
     # Process the image and detect pose
     results = pose.process(image)
+
+    # Black screen to put wireframe on
+    wireImage = np.zeros_like(frame)
     
     # Convert back to BGR for OpenCV
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     
+    #Filtered connections
+    connections = frozenset([(9, 10), (11, 12),(11, 23), (12, 24), (23, 24),])
+    
     if results.pose_landmarks:
-        # Draw pose landmarks
-        mp_drawing.draw_landmarks(
+        # Draw pose landmarks on camera
+        draw_landmarks(
             image, 
             results.pose_landmarks,
-            mp_pose.POSE_CONNECTIONS)
+            connections)
+
+        # Draw pose landmarks on black screen
+        draw_landmarks(
+            wireImage, 
+            results.pose_landmarks,
+            connections)
         
         # Analyze posture
         landmarks = results.pose_landmarks.landmark
@@ -142,6 +176,7 @@ while cap.isOpened():
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     # Display the image
     cv2.imshow('Side Profile Pose Detection', image)
+    cv2.imshow('WireFrame', wireImage)
     
     # Break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
