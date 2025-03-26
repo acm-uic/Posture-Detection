@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import numpy as np
+import time
 
 from drawing import draw_landmarks
 
@@ -10,6 +11,7 @@ mp_drawing = mp.solutions.drawing_utils
 pose = mp_pose.Pose(
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5)
+refresh_flag = False
 
 # Initialize webcam
 cap = cv2.VideoCapture(0)  # 0 for default webcam
@@ -99,6 +101,7 @@ def analyze_side_posture(landmarks):
     return neck_angle, back_angle
 
 while cap.isOpened():
+    start_time = time.time()
     ret, frame = cap.read()
     if not ret:
         print("Failed to grab frame")
@@ -178,6 +181,13 @@ while cap.isOpened():
     cv2.imshow('Side Profile Pose Detection', image)
     cv2.imshow('WireFrame', wireImage)
     
+    # Checks if the time that has passed since the program started is an iterval of 60 seconds
+    cur_time = time.time()
+    if((start_time - cur_time)%60 == 0):
+        refresh_flag = True
+    else:
+        refresh_flag = False
+
     # Break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
