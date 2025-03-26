@@ -40,13 +40,24 @@ def calculate_angle(a, b, c):
 def is_side_profile(landmarks):
     left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
     right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
-    
-    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+    left_ear = landmarks[mp_pose.PoseLandmark.LEFT_EAR.value]
+    right_ear = landmarks[mp_pose.PoseLandmark.RIGHT_EAR.value]
 
-    if shoulder_difference < 0.05:
+    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+    ear_difference = abs(left_ear.x - right_ear.x)
+
+    if shoulder_difference < 0.05 and ear_difference < 0.05:
         return True
     return False
 
+def is_front_profile(landmarks):
+    left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
+    right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
+    
+    shoulder_difference = abs(left_shoulder.x - right_shoulder.x)
+    if shoulder_difference > 0.05:
+        return True
+    return False
 
 def degreeFromLeftShoulder(landmark):
     left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
@@ -64,9 +75,8 @@ def degreeFromLeftShoulder(landmark):
    
     print(calculate_angle(LeftshoulderPoint, shoulderMidPoint, nosePoint))
    
-
-
-
+    
+   
 def analyze_side_posture(landmarks):
     """
     Analyze posture from side view
@@ -151,8 +161,17 @@ while cap.isOpened():
             cv2.putText(image, back_status, (10, 120),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
             
+        elif is_front_profile(landmarks):
+            side_profile_status = "Front profile: Detected"
+            neck_angle, back_angle = analyze_side_posture(landmarks)
+            
+            # Display angles
+            cv2.putText(image, f'Neck angle: {neck_angle:.1f}', (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            cv2.putText(image, f'Back angle: {back_angle:.1f}', (10, 60),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
         else:
-            side_profile_status = "Side profile: Not detected"
+            side_profile_status = "Side/Front profile: Not detected"
         cv2.putText(image, side_profile_status, (10, 150),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
     # Display the image
