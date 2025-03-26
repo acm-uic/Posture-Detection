@@ -59,7 +59,7 @@ def is_front_profile(landmarks):
         return True
     return False
 
-def degreeFromLeftShoulder(landmark):
+def getStDev(landmark):
     left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
     right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
     nose = landmarks[mp_pose.PoseLandmark.NOSE.value]
@@ -73,7 +73,7 @@ def degreeFromLeftShoulder(landmark):
     shoulderMidPoint = [shoulder_midpointX, shoulder_midpointY]
     nosePoint = [nose.x, nose.y]
    
-    print(calculate_angle(LeftshoulderPoint, shoulderMidPoint, nosePoint))
+    return int(abs(calculate_angle(LeftshoulderPoint, shoulderMidPoint, nosePoint) - 90) / 5)
    
     
    
