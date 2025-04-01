@@ -61,7 +61,16 @@ def is_front_profile(landmarks):
         return True
     return False
 
-def getStDev(landmark):
+def getStepSizeFromFront(landmark):
+    
+    """
+    Takes in landmark as parameter
+    returns the standard deviation (1 stdev  = 5 degrees deviation from 90 degrees) angle of the neck
+
+    """
+
+
+
     left_shoulder = landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value]
     right_shoulder = landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value]
     nose = landmarks[mp_pose.PoseLandmark.NOSE.value]
@@ -74,7 +83,7 @@ def getStDev(landmark):
     LeftshoulderPoint = [left_shoulder.x, left_shoulder.y]
     shoulderMidPoint = [shoulder_midpointX, shoulder_midpointY]
     nosePoint = [nose.x, nose.y]
-   
+
     return int(abs(calculate_angle(LeftshoulderPoint, shoulderMidPoint, nosePoint) - 90) / 5)
    
     
